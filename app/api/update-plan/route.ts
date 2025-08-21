@@ -1,75 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
-import mysql from 'mysql2/promise'
-
-// Database connection
-const createConnection = async () => {
-  const connectionConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'elasticdoctor',
-    password: process.env.DB_PASSWORD || 'elastic-1905Bis-doctor9420',
-    database: process.env.DB_NAME || 'elasticdoctor',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    connectTimeout: 10000,
-    acquireTimeout: 10000,
-    timeout: 10000,
-    reconnect: true,
-    idleTimeout: 300000,
-  }
-  
-  try {
-    const connection = await mysql.createConnection(connectionConfig)
-    return connection
-  } catch (error) {
-    console.error('Database connection failed:', error)
-    throw new Error(`Database connection failed: ${error.message}`)
-  }
-}
+import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    // Mock implementation for Railway deployment
+    const user = await getCurrentUser()
     
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { success: false, error: 'Not authenticated' },
         { status: 401 }
       )
     }
 
-    const { plan } = await request.json()
+    const { newPlan } = await request.json()
     
-    if (!['developer', 'professional'].includes(plan)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid plan' },
-        { status: 400 }
-      )
-    }
+    // Mock plan update (for demo, we just return success)
+    console.log('Mock: Plan update requested for user:', user.email, 'to plan:', newPlan)
+    
+    return NextResponse.json({
+      success: true,
+      message: `Plan updated to ${newPlan} successfully (demo mode)`,
+      newPlan: newPlan
+    })
 
-    // Update user's pricing tier
-    const connection = await createConnection()
-    try {
-      await connection.execute(
-        'UPDATE users SET pricing_tier = ?, updated_at = NOW() WHERE id = ?',
-        [plan, session.user.id]
-      )
-      
-      console.log(`Updated user ${session.user.id} to ${plan} plan`)
-      
-      return NextResponse.json({
-        success: true,
-        message: `Successfully updated to ${plan} plan`,
-        plan: plan
-      })
-    } finally {
-      await connection.end()
-    }
-    
   } catch (error) {
-    console.error('Plan update error:', error)
+    console.error('Update plan error:', error)
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      { success: false, error: 'Failed to update plan' },
       { status: 500 }
     )
   }
