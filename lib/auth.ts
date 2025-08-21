@@ -1,10 +1,17 @@
 /**
- * NextAuth-based authentication utilities for server-side use
+ * Authentication utilities for server-side use
+ * Mock implementation for Railway deployment
  */
 
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { Session } from 'next-auth'
+// Mock session for demo
+const mockSession = {
+  user: {
+    id: 1,
+    email: 'demo@elasticdoctor.com',
+    name: 'Demo User',
+    pricingTier: 'developer'
+  }
+}
 
 // Pricing tier configuration
 export const PRICING_TIERS = {
@@ -30,23 +37,29 @@ export function getTierConfig(tier: string) {
   return PRICING_TIERS[tier as keyof typeof PRICING_TIERS] || PRICING_TIERS.developer
 }
 
-// Server-side authentication utilities
+// Mock authentication functions
+export async function getCurrentUser() {
+  // Return mock user for demo
+  return {
+    id: 1,
+    email: 'demo@elasticdoctor.com',
+    name: 'Demo User',
+    pricing_tier: 'developer'
+  }
+}
+
 export async function getServerAuth() {
-  return await getServerSession(authOptions)
+  return mockSession
 }
 
 export async function requireAuth() {
-  const session = await getServerAuth()
-  if (!session) {
-    throw new Error('Authentication required')
-  }
-  return session
+  return mockSession
 }
 
-export function hasPermission(session: Session | null, requiredTier: 'developer' | 'professional'): boolean {
+export function hasPermission(session: any, requiredTier: 'developer' | 'professional'): boolean {
   if (!session) return false
   
-  const userTier = session.user.pricingTier
+  const userTier = session.user?.pricingTier || 'developer'
   
   if (requiredTier === 'developer') {
     return userTier === 'developer' || userTier === 'professional'
@@ -59,7 +72,7 @@ export function hasPermission(session: Session | null, requiredTier: 'developer'
   return false
 }
 
-// Email validation (still useful for forms)
+// Email validation
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
