@@ -10,7 +10,8 @@ class MockDatabase {
         id: 1,
         email: 'demo@elasticdoctor.com',
         name: 'Demo User',
-        pricing_tier: 'developer'
+        pricing_tier: 'developer',
+        is_active: true
       }]
     }
     
@@ -34,6 +35,11 @@ class MockDatabase {
 // Mock database instance
 const db = new MockDatabase()
 
+// Export query function for compatibility
+export async function query(sql: string, params?: any[]) {
+  return db.query(sql, params)
+}
+
 export async function initializeDatabase() {
   // Mock initialization
   console.log('Mock database initialized')
@@ -46,7 +52,8 @@ export async function getCurrentUser() {
     id: 1,
     email: 'demo@elasticdoctor.com',
     name: 'Demo User',
-    pricing_tier: 'developer'
+    pricing_tier: 'developer',
+    is_active: true
   }
 }
 
